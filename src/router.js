@@ -12,10 +12,18 @@ router.post("/auth/register", authController.register);
 
 router.post("/auth/authenticate", authController.authenticate);
 
-router.get("/projects", authMiddleware, projectController.test); 
-
 router.post("/forgot-password", authController.forgotPassword);
 
 router.post("/reset-password", authController.resetPassword);
+
+router.get("/projects", authMiddleware, projectController.list); 
+
+router.get("/projects/:projectId", authMiddleware, projectController.shownOne); 
+
+router.post("/projects", authMiddleware, projectController.criaProject)
+
+router.put("/projects/:projectId", authMiddleware, projectController.atualizar);
+
+router.get("/projects/:projectId", authMiddleware, projectController.deleta);
 
 module.exports = router;

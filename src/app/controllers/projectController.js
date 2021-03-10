@@ -1,7 +1,89 @@
-async function test(req, res) {
-    return res.status(200).json( {api: "okay"});
+const Project = require('../models/project');
+const Task = require('../models/task');
+
+async function list(req, res) {
+    try {
+        const projects = await Project.find().populate(["user", "tasks"]);
+        return res.status(200).json(projects);
+    } catch (err) {
+        return res.status(400).send({ error: "Erro ao carregar projeto" });
+    }
+};
+
+async function shownOne(req, res) {
+    try {
+        const project = await Project.findById(req.params.projectId).populate(["user", "tasks"]);
+        return res.status(200).json(project);
+    } catch (err) {
+        console.log(err);
+        return res.status(400).send({ error: "Error ao carregar projeto" });
+    }
+};
+
+async function criaProject(req, res) {
+    try {
+        const { title, description, tasks } = req.body;
+
+        const project = await Project.create({ title, description, user: req.userId });
+        
+        await Promise.all(tasks.map(async task => {
+          
+            const projectTask = new Task({ ...task, project: project._id });
+          
+            await projectTask.save();
+          
+            project.tasks.push(projectTask);
+        }));
+        
+        await project.save();
+        
+        return res.status(200).json(project);
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: "error creating new project" });
+  }
+};
+
+async function atualizar(req, res) {
+    try {
+        const {title, description, tasks} = req.body;
+
+        const project = await Project.findByIdAndUpdate(req.params.projectId, { 
+            title, 
+            description }, {new: true});
+
+        project.tasks = [];
+        await Task.remove({project: project._id});
+
+        await Promise.all(tasks.map(async task => {
+            const projectTask = new Task({...task, project: project._id});
+
+            await projectTask.save();
+        
+            project.tasks.push(projectTask);
+        }));
+
+        await project.save();
+        return res.status(200).json(project);
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: "Error ao atualizar projeto" });
+    }
+};
+
+async function deleta(req, res) {
+    try {
+        await Project.findByIdAndDelete(req.params.projectId);
+        return res.status(200).json();
+    } catch (err) {
+        return res.status(400).send({ error: "error delete project" });
+    }
 };
 
 module.exports = {
-    test,
+    list,
+    shownOne,
+    criaProject,
+    atualizar,
+    deleta,
 };  

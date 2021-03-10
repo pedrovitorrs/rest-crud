@@ -76,7 +76,7 @@ async function forgotPassword(req, res) {
     try{
         const user = await User.findOne({email});
         if(!user) 
-            return res.status(204).json();
+            return res.status(400).json({error: 'Usuario nao encontrado'});
 
         const token = crypto.randomBytes(20).toString('hex');
 
