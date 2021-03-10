@@ -102,8 +102,31 @@ async function forgotPassword(req, res) {
             return res.status(200).json();
         })
     } catch (err){
-        console.log(err);
         res.status(400).json({error: 'Erro na recuperacao'});
+    }
+};
+
+async function resetPassword(req, res) {
+    const { email, token, password } = req.body;
+    try{
+        const user = await User.findOne({email}).select('+passwordResetToken passwordResetExpires');
+        
+        if(!user) 
+            return res.status(400).json({error: 'Invalid user'});
+        
+        if(token !== user.passwordResetToken)
+            return res.status(400).json({error: 'Error token'});
+        
+        const now = new Date;
+        if(now > user.passwordResetExpires)
+            return res.status(400).json({error: 'Token Expirado'});
+        
+        user.password = password;
+        
+        await user.save();
+        res.status(200).json();
+    } catch(err){
+        res.status(400).json({error: 'Erro nao reset'});
     }
 };
 
@@ -111,4 +134,5 @@ module.exports = {
     register,
     authenticate,
     forgotPassword,
+    resetPassword,
 }
