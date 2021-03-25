@@ -6,14 +6,19 @@ async function list(req, res) {
         const projects = await Project.find().populate(["user", "tasks"]);
         return res.status(200).json(projects);
     } catch (err) {
+        console.log(err)
         return res.status(400).send({ error: "Erro ao carregar projeto" });
     }
 };
 
 async function shownOne(req, res) {
     try {
-        const project = await Project.findById(req.params.projectId).populate(["user", "tasks"]);
-        return res.status(200).json(project);
+        /*const project = await Project.findById(req.params.projectId).populate(["user", "tasks"]);*/
+        
+        /*Recebe através da resource um id de usuário válido, sendo possível assim retornar apenas 
+        os projetos que possuem um id de user igual o id recebido na request*/
+        const task = await Project.find({ "user" : req.params.userId }).populate(["user", "tasks"]);
+        return res.status(200).json(task);
     } catch (err) {
         console.log(err);
         return res.status(400).send({ error: "Error ao carregar projeto" });
@@ -22,10 +27,11 @@ async function shownOne(req, res) {
 
 async function criaProject(req, res) {
     try {
-        const { title, description, tasks } = req.body;
+        const { title } = req.body;
 
-        const project = await Project.create({ title, description, user: req.userId });
+        const project = await Project.create({ title, user: req.userId });
         
+        /*
         await Promise.all(tasks.map(async task => {
           
             const projectTask = new Task({ ...task, project: project._id });
@@ -34,7 +40,7 @@ async function criaProject(req, res) {
           
             project.tasks.push(projectTask);
         }));
-        
+        */
         await project.save();
         
         return res.status(200).json(project);
@@ -46,15 +52,12 @@ async function criaProject(req, res) {
 
 async function atualizar(req, res) {
     try {
-        const {title, description, tasks} = req.body;
-
-        const project = await Project.findByIdAndUpdate(req.params.projectId, { 
-            title, 
-            description }, {new: true});
-
+        const {tasks} = req.body;
+        
+        const project = await Project.findByIdAndUpdate(req.params.projectId, {new: true});
         project.tasks = [];
-        await Task.remove({project: project._id});
-
+        await Task.deleteOne({project: project._id});
+        
         await Promise.all(tasks.map(async task => {
             const projectTask = new Task({...task, project: project._id});
 

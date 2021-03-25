@@ -26,7 +26,7 @@ async function register(req, res) {
             pois usuario ja existe
         */
         if(await User.findOne({ email }))
-            return res.status(204).json(); 
+            return res.status(400).json({error: "Email já cadastrado"}); 
         
         const user = await User.create(req.body);
 
@@ -38,7 +38,7 @@ async function register(req, res) {
         return res.status(200).json({user, token: generateToken({ id: user.id })});
     
     } catch (err) {
-        return res.status(204).json();
+        return res.status(400).json({error: err});
     }
 };
 
@@ -54,7 +54,7 @@ async function authenticate(req, res) {
         retorna 204: Not Found
     */
     if(!user)
-        return res.status(204).json();
+        return res.status(400).json({error: "Usuario nao encontrado"});
     /*
         Caso nao seja encontrado o campo 'password' do usuario no bd,
         que condiz com o repassado na requisicao, 
