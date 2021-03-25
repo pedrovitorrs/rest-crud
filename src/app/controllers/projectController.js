@@ -54,9 +54,7 @@ async function atualizar(req, res) {
     try {
         const {tasks} = req.body;
         
-        const project = await Project.findByIdAndUpdate(req.params.projectId, {new: true});
-        project.tasks = [];
-        await Task.deleteOne({project: project._id});
+        const project = await Project.findByIdAndUpdate(req.params.projectId, {new: true}).populate(["tasks"]);
         
         await Promise.all(tasks.map(async task => {
             const projectTask = new Task({...task, project: project._id});
