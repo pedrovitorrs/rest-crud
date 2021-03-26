@@ -1,5 +1,6 @@
 const mongoose =  require('mongoose');
+require('dotenv/config');
 
-mongoose.connect('mongodb://root:MongoDB2019!@localhost:27017/noderest?authSource=admin', { useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true,  useFindAndModify: false});
+mongoose.connect(process.env.MONGO_URL, { useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true,  useFindAndModify: false});
 
 module.exports = mongoose;
